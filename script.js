@@ -1,3 +1,4 @@
+const weatherEl = document.getElementById("weather");
 const clockEl = document.getElementById("clock");
 const form = document.getElementById("alarm-form");
 const timeInput = document.getElementById("alarm-time");
@@ -146,6 +147,27 @@ listEl.addEventListener("click", (e) => {
   }
 });
 
+async function loadWeather() {
+  if (typeof WEATHER_CONFIG === "undefined") {
+    weatherEl.textContent = "날씨 정보 없음 (config.js 필요)";
+    return;
+  }
+  const { apiKey, lat, lon } = WEATHER_CONFIG;
+  const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=kr`;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`status ${res.status}`);
+    const data = await res.json();
+    const temp = Math.round(data.main.temp);
+    const desc = data.weather[0].description;
+    weatherEl.textContent = `🌤️ ${data.name} ${temp}°C, ${desc}`;
+  } catch (err) {
+    weatherEl.textContent = "날씨 정보를 불러오지 못했습니다.";
+  }
+}
+
 renderAlarms();
 updateClock();
 setInterval(updateClock, 1000);
+loadWeather();
+setInterval(loadWeather, 10 * 60 * 1000);
