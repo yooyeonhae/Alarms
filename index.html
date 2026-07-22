@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>알람 웹앱</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <h1>⏰ 알람</h1>
+
+    <div class="clock" id="clock">00:00:00</div>
+
+    <form id="alarm-form" class="alarm-form">
+      <input type="time" id="alarm-time" step="1" required>
+      <input type="text" id="alarm-label" placeholder="알람 이름 (선택)" maxlength="30">
+      <button type="submit">추가</button>
+    </form>
+
+    <ul id="alarm-list" class="alarm-list"></ul>
+  </div>
+
+  <div id="ringing-overlay" class="overlay hidden">
+    <div class="overlay-box">
+      <p id="ringing-label">알람!</p>
+      <button id="stop-btn">중지</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
