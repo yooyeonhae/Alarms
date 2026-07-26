@@ -302,3 +302,29 @@ h1 {
   resize: none;
   outline: none;
 }
+
+.save-now-btn {
+  display: block;
+  width: 100%;
+  margin: 0 0 8px;
+  padding: 10px 14px;
+  border: none;
+  border-radius: 8px;
+  background: #3aa876;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.save-now-btn:hover {
+  background: #2f8c62;
+}
+
+.save-status {
+  text-align: center;
+  min-height: 16px;
+  margin: 0 0 16px;
+  font-size: 12px;
+  color: #999;
+}

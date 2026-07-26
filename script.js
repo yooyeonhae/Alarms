@@ -7,6 +7,8 @@ const listEl = document.getElementById("alarm-list");
 const overlay = document.getElementById("ringing-overlay");
 const ringingLabel = document.getElementById("ringing-label");
 const stopBtn = document.getElementById("stop-btn");
+const saveNowBtn = document.getElementById("save-now-btn");
+const saveStatusEl = document.getElementById("save-status");
 
 const STORAGE_KEY = "alarms";
 let alarms = loadAlarms();
@@ -25,6 +27,35 @@ function loadAlarms() {
 function saveAlarms() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(alarms));
 }
+
+async function saveAlarmsToAppsScript() {
+  if (typeof APPS_SCRIPT_URL === "undefined" || !APPS_SCRIPT_URL) {
+    saveStatusEl.textContent = "저장에 실패했습니다";
+    return;
+  }
+
+  saveStatusEl.textContent = "저장 중...";
+
+  try {
+    const res = await fetch(APPS_SCRIPT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ alarms }),
+    });
+    const data = await res.json().catch(() => null);
+
+    if (res.ok && data && data.result === "success") {
+      const now = new Date();
+      saveStatusEl.textContent = `저장되었습니다 (${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())})`;
+    } else {
+      saveStatusEl.textContent = "저장에 실패했습니다";
+    }
+  } catch (err) {
+    saveStatusEl.textContent = "저장에 실패했습니다";
+  }
+}
+
+saveNowBtn.addEventListener("click", saveAlarmsToAppsScript);
 
 function pad(n) {
   return String(n).padStart(2, "0");
@@ -49,10 +80,28 @@ function checkAlarms(now) {
   });
 }
 
+const ALARM_NEWS_BRIEFING_KEYWORD = "오늘의 뉴스";
+const ALARM_NEWS_BRIEFING_COUNT = 3;
+
 function ringAlarm(alarm) {
   ringingLabel.textContent = alarm.label ? alarm.label : `${alarm.time} 알람`;
   overlay.classList.remove("hidden");
   startBeep();
+  playNewsBriefing();
+}
+
+async function playNewsBriefing() {
+  if (typeof fetchRecentNews !== "function") return;
+
+  try {
+    const data = await fetchRecentNews(ALARM_NEWS_BRIEFING_KEYWORD, ALARM_NEWS_BRIEFING_COUNT);
+    if (typeof renderNewsBriefing === "function") renderNewsBriefing(data.items);
+    if (typeof buildBriefingText === "function" && typeof speakBriefing === "function") {
+      speakBriefing(buildBriefingText(data.items));
+    }
+  } catch (err) {
+    // 뉴스 브리핑 실패는 알람 소리 재생에 영향을 주지 않는다.
+  }
 }
 
 function startBeep() {
@@ -83,6 +132,7 @@ function stopBeep() {
 stopBtn.addEventListener("click", () => {
   overlay.classList.add("hidden");
   stopBeep();
+  if (typeof stopBriefing === "function") stopBriefing();
 });
 
 form.addEventListener("submit", (e) => {
