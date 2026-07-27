@@ -66,7 +66,19 @@ Deno.serve(async (req: Request) => {
       return jsonResponse({ error: "Naver API request failed" }, 500);
     }
 
-    const data = await naverRes.json();
+    const buffer = await naverRes.arrayBuffer();
+    const contentType = naverRes.headers.get("content-type") || "";
+    const charsetMatch = contentType.match(/charset=([^;]+)/i);
+    const charset = charsetMatch ? charsetMatch[1].trim().toLowerCase() : "utf-8";
+
+    let text: string;
+    try {
+      text = new TextDecoder(charset).decode(buffer);
+    } catch {
+      text = new TextDecoder("utf-8").decode(buffer);
+    }
+
+    const data = JSON.parse(text);
     return jsonResponse(data, 200);
   } catch {
     return jsonResponse({ error: "Naver API request failed" }, 500);
